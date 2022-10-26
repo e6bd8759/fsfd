@@ -101,6 +101,14 @@ Resources:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
 
+  DynamoDBEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      RouteTableIds:
+        - rtb-03ecde26b8d0718e1
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.dynamodb
+      VpcId: !Ref VPC
+
   DBSubnetGroup:
     Type: AWS::DocDB::DBSubnetGroup
     Properties:
