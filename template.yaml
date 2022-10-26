@@ -161,21 +161,21 @@ Resources:
       ImageScanningConfiguration: 
         ScanOnPush: true
 
-  # CacheSubnetGroup:
-  #   Type: "AWS::ElastiCache::SubnetGroup"
-  #   Properties:
-  #     Description: cache
-  #     SubnetIds:
-  #       - Ref: SubnetA
-  #       - Ref: SubnetB
+  CacheSubnetGroup:
+    Type: "AWS::ElastiCache::SubnetGroup"
+    Properties:
+      Description: cache
+      SubnetIds:
+        - Ref: SubnetA
+        - Ref: SubnetB
 
-  # Cache:
-  #   Type: "AWS::ElastiCache::CacheCluster"
-  #   Properties:
-  #     CacheNodeType: "cache.t2.micro"
-  #     CacheSubnetGroupName: !Ref CacheSubnetGroup
-  #     Engine: redis
-  #     NumCacheNodes: 1
+  Cache:
+    Type: "AWS::ElastiCache::CacheCluster"
+    Properties:
+      CacheNodeType: "cache.t2.micro"
+      CacheSubnetGroupName: !Ref CacheSubnetGroup
+      Engine: redis
+      NumCacheNodes: 1
 
 Outputs:
   CheckIpApi:
