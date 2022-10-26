@@ -54,8 +54,8 @@ Resources:
             Method: post
       Environment:
         Variables:
-          CACHE: !Ref Cache
-          DB_CLUSTER: !Ref DBCluster
+          CACHE: !Ref CacheEndpoint
+          DB_CLUSTER: !Ref DBClusterEndpoint
           DB_USER: !Ref DocDbUsername
           DB_PASS: !Ref DocDbPassword
           SETTINGS_TABLE: !Ref SettingsTable
@@ -179,10 +179,10 @@ Outputs:
   CheckIpFunctionIamRole:
     Description: "Implicit IAM Role created for Check IP function"
     Value: !GetAtt CheckIpFunctionRole.Arn
-  DBCluster:
+  DBClusterEndpoint:
     Description: The DB Cluster Name
     Value: !GetAtt DBCluster.Endpoint
-  Cache:
+  CacheEndpoint:
     Description: The Cache endpoint
     Value: !GetAtt Cache.RedisEndpoint.Address
   SettingsTable:
