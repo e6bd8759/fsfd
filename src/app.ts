@@ -23,24 +23,6 @@ const schema = object({
     }),
 });
 
-const getValue = (key: string) => {
-    return new Promise((resolve, reject) => {
-        (redisClient as any).get(key, (error: any, response: any) => {
-            if (error) reject(error);
-            else resolve(response);
-        });
-    });
-};
-
-const storeValue = (key: string, value: string) => {
-    return new Promise((resolve, reject) => {
-        (redisClient as any).set(key, value, (error: any, response: any) => {
-            if (error) reject(error);
-            else resolve(response);
-        });
-    });
-};
-
 export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
         const body = parseBody<TypeOf<typeof schema>>(event.body!, schema);
@@ -50,7 +32,8 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         console.log('ipNumber', ipNumber);
 
         console.log('Checking cache...');
-        const cacheValue = (await getValue(`ipNumber-${ipNumber}`)) as string;
+        await redisClient.connect();
+        const cacheValue = (await redisClient.get(`ipNumber-${ipNumber}`)) as string;
         if (cacheValue) {
             return createResponse(200, JSON.parse(cacheValue));
         }
@@ -85,7 +68,7 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         console.log('blocklistResult', blocklistResult);
 
         console.log('Saving to cache...');
-        await storeValue(
+        await redisClient.set(
             `ipNumber-${ipNumber}`,
             JSON.stringify({
                 isFraud: true,
