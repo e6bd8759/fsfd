@@ -184,7 +184,7 @@ Outputs:
     Value: !GetAtt DBCluster.Endpoint
   Cache:
     Description: The Cache endpoint
-    Value: !GetAtt Cache.Endpoint
+    Value: !GetAtt Cache.PrimaryEndPointAddress
   SettingsTable:
     Description: DynamoDb Table for Settings
     Value: !Ref SettingsTable
