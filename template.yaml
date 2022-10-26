@@ -136,8 +136,8 @@ Resources:
     Properties:
       Description: cache
       SubnetIds:
-        - Ref: SubnetA
-        - Ref: SubnetB
+        - Ref: Subnet1
+        - Ref: Subnet2
 
   Cache:
     Type: "AWS::ElastiCache::CacheCluster"
