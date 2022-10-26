@@ -68,8 +68,8 @@ Resources:
       - DBCluster
       - SettingsTable
     Properties:
-      CodeUri: src/functions/
-      Handler: checkIpAddress.handler
+      CodeUri: src/
+      Handler: app.lambdaHandler
       Runtime: nodejs16.x
       Architectures:
         - x86_64

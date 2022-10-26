@@ -2,10 +2,10 @@ import DynamoDB from 'aws-sdk/clients/dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { TypeOf, object, string } from 'zod';
 
-import { connect } from '../utils/connect';
-import { createResponse } from '../utils/createResponse';
-import { convertIpAddressToNumber } from '../utils/convertIpAddressToNumber';
-import { parseBody } from '../utils/parseBody';
+import { connect } from './utils/connect';
+import { createResponse } from './utils/createResponse';
+import { convertIpAddressToNumber } from './utils/convertIpAddressToNumber';
+import { parseBody } from './utils/parseBody';
 
 const docClient = new DynamoDB.DocumentClient();
 
@@ -15,7 +15,7 @@ const schema = object({
     }),
 });
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
         const body = parseBody<TypeOf<typeof schema>>(event.body!, schema);
         console.log('body', body);
