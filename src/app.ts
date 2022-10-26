@@ -49,6 +49,7 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         const ipNumber = convertIpAddressToNumber(body.ipAddress);
         console.log('ipNumber', ipNumber);
 
+        console.log('Checking cache...');
         const cacheValue = (await getValue(`ipNumber-${ipNumber}`)) as string;
         if (cacheValue) {
             return createResponse(200, JSON.parse(cacheValue));
@@ -83,6 +84,7 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         });
         console.log('blocklistResult', blocklistResult);
 
+        console.log('Saving to cache...');
         await storeValue(
             `ipNumber-${ipNumber}`,
             JSON.stringify({
