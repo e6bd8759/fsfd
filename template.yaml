@@ -94,6 +94,13 @@ Resources:
       Layers:
         - !Ref CertificateLayer
       Role: !GetAtt CheckIpFunctionRole.Arn
+      Timeout: 60
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0cf0427472230820c
+        SubnetIds:
+          - !Ref Subnet1
+          - !Ref Subnet2
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -101,13 +108,6 @@ Resources:
         Target: "es2020"
         EntryPoints:
           - app.ts
-    Timeout: 60
-    VpcConfig:
-      SecurityGroupIds:
-        - sg-0cf0427472230820c
-      SubnetIds:
-        - !Ref Subnet1
-        - !Ref Subnet2
 
   CertificateLayer:
     Type: AWS::Serverless::LayerVersion
@@ -153,6 +153,13 @@ Resources:
       DBClusterIdentifier: !Ref DBCluster
       DBInstanceClass: "db.t3.medium"
       PreferredMaintenanceWindow: "sun:00:00-sun:05:00"
+
+  ImageRepository:
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: fsfd-repo
+      ImageScanningConfiguration: 
+        ScanOnPush: true
 
   # CacheSubnetGroup:
   #   Type: "AWS::ElastiCache::SubnetGroup"
