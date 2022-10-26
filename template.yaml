@@ -181,7 +181,7 @@ Outputs:
     Value: !GetAtt CheckIpFunctionRole.Arn
   DBCluster:
     Description: The DB Cluster Name
-    Value: !GetAtt DBCluster.Arn
+    Value: !GetAtt DBCluster.Endpoint
   SettingsTable:
     Description: DynamoDb Table for Settings
     Value: !Ref SettingsTable
