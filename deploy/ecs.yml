@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "FluentStream Fraud Detection"
+Parameters:
+  ECRRegistry:
+    Type: String
+    Description: The ECR registry
+
+  ECRRepository:
+    Type: String
+    Description: The ECR repository
+
+  ImageTag:
+    Type: String
+    Description: The container image tag
+
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: sync
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn: LogGroup
+    Properties:
+      Family: !Join ["", [!Ref ServiceName, TaskDefinition]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 0.5GB
+      ExecutionRoleArn: !Ref ExecutionRole
+      TaskRoleArn: !Ref TaskRole
+      ContainerDefinitions:
+        - Name: sync
+          Image:
+            !Join [
+              "",
+              [!Ref ECRRegistry, "/", !Ref ECRRepository, ":", !Ref ImageTag],
+            ]
+          Environment:
+            - name: CACHE
+              value: fsf-ca-13m6lry32cwp2.acgbjf.0001.use1.cache.amazonaws.com:6379
+            - name: SETTINGS_TABLE
+              value: fsfd-SettingsTable-1H9CZ14JOBH6E
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: ecs
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ["", [/ecs/, sync]]

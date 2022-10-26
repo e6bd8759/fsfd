@@ -33,7 +33,7 @@ jobs:
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           name: staging-fsfd-bucket
-          template: deploy/staging.yml
+          template: deploy/s3.yml
           no-fail-on-empty-changeset: "1"
 
       - name: Build via SAM
@@ -75,3 +75,14 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Deploy to AWS CloudFormation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: staging-fsfd-bucket
+          template: deploy/ecs.yml
+          no-fail-on-empty-changeset: "1"
+          parameter-overrides: >-
+            ECRRegistry: ${{ steps.login-ecr.outputs.registry }},
+            ECRRepository: fsfd-repo,
+            ImageTag: sync
