@@ -4,6 +4,7 @@ let cachedDb: Db;
 
 export const connect = async () => {
     if (cachedDb) {
+        console.log('Using cached MongoDB...');
         return cachedDb;
     }
 
