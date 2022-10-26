@@ -1,6 +1,6 @@
 import DynamoDB from 'aws-sdk/clients/dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import redis from 'redis';
+import { createClient } from 'redis';
 import { TypeOf, object, string } from 'zod';
 
 import { connect } from './utils/connect';
@@ -10,7 +10,7 @@ import { parseBody } from './utils/parseBody';
 
 const docClient = new DynamoDB.DocumentClient();
 
-const redisClient = redis.createClient({
+const redisClient = createClient({
     socket: {
         host: process.env.CACHE,
         port: 6379,
