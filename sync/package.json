@@ -1,12 +1,13 @@
 {
   "name": "fsfd-sync",
+  "dependencies": {
+    "aws-sdk": "^2.1234.0",
+    "ip-cidr": "^3.0.10",
+    "mongodb": "^4.11.0"
+  },
   "devDependencies": {
     "ts-node": "^10.9.1",
     "typescript": "^4.8.4"
-  },
-  "dependencies": {
-    "aws-sdk": "^2.1234.0",
-    "mongodb": "^4.11.0"
   },
   "scripts": {
     "build": "tsc",

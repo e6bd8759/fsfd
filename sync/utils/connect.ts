@@ -1,10 +1,24 @@
-import { MongoClient } from 'mongodb';
+import { Db, MongoClient } from 'mongodb';
 
 export const connect = async () => {
+    console.log(`mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_CLUSTER}:27017`);
+
+    console.log('Connecting via Mongo Client...');
+    console.log({
+        readPreference: 'secondaryPreferred',
+        replicaSet: 'rs0',
+        retryWrites: false,
+        ssl: true,
+        sslCA: process.env.TLS_CA_FILE,
+    });
     const client = await MongoClient.connect(
-        `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@sample-cluster.node.us-east-1.docdb.amazonaws.com:27017/sample-database?tls=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`,
+        `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_CLUSTER}:27017`,
         {
-            tlsCAFile: `rds-combined-ca-bundle.pem`,
+            readPreference: 'secondaryPreferred',
+            replicaSet: 'rs0',
+            retryWrites: false,
+            ssl: true,
+            sslCA: process.env.TLS_CA_FILE,
         },
     );
 
