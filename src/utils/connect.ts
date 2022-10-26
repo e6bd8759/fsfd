@@ -1,6 +1,8 @@
 import { MongoClient } from 'mongodb';
 
 export const connect = async () => {
+    console.log(`mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_CLUSER}:27017/?tls=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`);
+
     const client = await MongoClient.connect(
         `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_CLUSER}:27017/?tls=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`,
         {
