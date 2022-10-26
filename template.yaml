@@ -54,6 +54,7 @@ Resources:
             Method: post
       Environment:
         Variables:
+          CACHE: !Ref Cache
           DB_CLUSTER: !Ref DBCluster
           DB_USER: !Ref DocDbUsername
           DB_PASS: !Ref DocDbPassword
@@ -173,6 +174,9 @@ Outputs:
   DBCluster:
     Description: The DB Cluster Name
     Value: !GetAtt DBCluster.Endpoint
+  Cache:
+    Description: The Cache endpoint
+    Value: !GetAtt Cache.Endpoint
   SettingsTable:
     Description: DynamoDb Table for Settings
     Value: !Ref SettingsTable

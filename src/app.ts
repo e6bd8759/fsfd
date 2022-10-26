@@ -1,5 +1,6 @@
 import DynamoDB from 'aws-sdk/clients/dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import redis from 'redis';
 import { TypeOf, object, string } from 'zod';
 
 import { connect } from './utils/connect';
@@ -9,11 +10,36 @@ import { parseBody } from './utils/parseBody';
 
 const docClient = new DynamoDB.DocumentClient();
 
+const redisClient = redis.createClient({
+    socket: {
+        host: process.env.CACHE,
+        port: 6379,
+    },
+});
+
 const schema = object({
     ipAddress: string({
         required_error: 'IP Address is required.',
     }),
 });
+
+const getValue = (key: string) => {
+    return new Promise((resolve, reject) => {
+        (redisClient as any).get(key, (error: any, response: any) => {
+            if (error) reject(error);
+            else resolve(response);
+        });
+    });
+};
+
+const storeValue = (key: string, value: string) => {
+    return new Promise((resolve, reject) => {
+        (redisClient as any).set(key, value, (error: any, response: any) => {
+            if (error) reject(error);
+            else resolve(response);
+        });
+    });
+};
 
 export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
@@ -22,6 +48,11 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
 
         const ipNumber = convertIpAddressToNumber(body.ipAddress);
         console.log('ipNumber', ipNumber);
+
+        const cacheValue = (await getValue(`ipNumber-${ipNumber}`)) as string;
+        if (cacheValue) {
+            return createResponse(200, JSON.parse(cacheValue));
+        }
 
         console.log('Reading from Settings table...');
         const settingsResult = await docClient
@@ -51,6 +82,13 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
             },
         });
         console.log('blocklistResult', blocklistResult);
+
+        await storeValue(
+            `ipNumber-${ipNumber}`,
+            JSON.stringify({
+                isFraud: true,
+            }),
+        );
 
         if (!blocklistResult) {
             return createResponse(200, {
