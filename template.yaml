@@ -38,6 +38,7 @@ Resources:
   CheckIpFunction:
     Type: AWS::Serverless::Function
     DependsOn:
+      - Cache
       - DBCluster
       - SettingsTable
     Properties:
@@ -54,8 +55,8 @@ Resources:
             Method: post
       Environment:
         Variables:
-          CACHE: !Ref CacheEndpoint
-          DB_CLUSTER: !Ref DBClusterEndpoint
+          CACHE: !GetAtt Cache.RedisEndpoint.Address
+          DB_CLUSTER: !GetAtt DBCluster.Endpoint
           DB_USER: !Ref DocDbUsername
           DB_PASS: !Ref DocDbPassword
           SETTINGS_TABLE: !Ref SettingsTable
