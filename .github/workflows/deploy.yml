@@ -1,0 +1,63 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code from main branch
+        uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      - name: Use SAM
+        uses: aws-actions/setup-sam@v1
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          aws-region: us-east-1
+
+      - name: Deploy to AWS CloudFormation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: staging-fsfd-bucket
+          template: deploy/staging.yml
+          no-fail-on-empty-changeset: "1"
+
+      - name: Build via SAM
+        run: sam build --use-container
+
+      - name: Deploy via SAM
+        env:
+          DOC_DB_USER: ${{ secrets.DOC_DB_USER }}
+          DOC_DB_PASS: ${{ secrets.DOC_DB_PASS }}
+          VPC: ${{ secrets.VPC }}
+          SUBNET1: ${{ secrets.SUBNET1 }}
+          SUBNET2: ${{ secrets.SUBNET2 }}
+        run: |
+          sam deploy \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --stack-name fsfd \
+            --s3-bucket staging-fsfd \
+            --capabilities CAPABILITY_IAM \
+            --region us-east-1 \
+            --on-failure DELETE \
+            --parameter-overrides \
+              DocDbUsername=$DOC_DB_USER \
+              DocDbPassword=$DOC_DB_PASS \
+              VPC=$VPC \
+              Subnet1=$SUBNET1 \
+              Subnet2=$SUBNET2

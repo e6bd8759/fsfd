@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "FluentStream Fraud Detection"
+Resources:
+  CheckIpBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: staging-fsfd
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true

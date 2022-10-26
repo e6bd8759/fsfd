@@ -1,0 +1,185 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  fsfd
+
+  Fraud detection for FluentStream
+
+Globals:
+  Function:
+    Timeout: 3
+
+Parameters:
+  VPC:
+    Type: String
+    Description: The VPC to create the cluster
+    Default: vpc-ID
+
+  Subnet1:
+    Type: String
+    Description: The subnet for the DB cluster
+    Default: subnet-ID
+
+  Subnet2:
+    Type: String
+    Description: The subnet for the DB cluster
+    Default: subnet-ID
+
+  DocDbUsername:
+    Type: String
+    Description: The username for our database.
+
+  DocDbPassword:
+    Type: String
+    Description: The password for the database.
+    NoEcho: true
+
+Resources:
+  CheckIpFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:*
+                  - ec2:CreateNetworkInterface
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DeleteNetworkInterface
+                  - secretsmanager:*
+                Resource: "*"
+
+  CheckIpFunction:
+    Type: AWS::Serverless::Function
+    DependsOn:
+      - DBCluster
+      - SettingsTable
+    Properties:
+      CodeUri: src/functions/
+      Handler: checkIpAddress.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      Events:
+        CheckIp:
+          Type: Api
+          Properties:
+            Path: /check-ip
+            Method: post
+      Environment:
+        Variables:
+          DB_CLUSTER: !Ref DBCluster
+          DB_USER: !Ref DocDbUsername
+          DB_PASS: !Ref DocDbPassword
+          SETTINGS_TABLE: !Ref SettingsTable
+          TLS_CA_FILE: /opt/rds-combined-ca-bundle.pem
+      Layers:
+        - !Ref CertificateLayer
+      Role: !GetAtt CheckIpFunctionRole.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SettingsTable
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        EntryPoints:
+          - app.ts
+    VpcConfig:
+      SecurityGroupIds:
+        - sg-0cf0427472230820c
+      SubnetIds:
+        - !Ref Subnet1
+        - !Ref Subnet2
+
+  CertificateLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs16.x
+      ContentUri: ./certs/
+      Description: Layer containing additional certificates
+
+  SettingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: Name
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Name
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  DBSubnetGroup:
+    Type: AWS::DocDB::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for DB Cluster
+      SubnetIds:
+        - !Ref Subnet1
+        - !Ref Subnet2
+
+  DBCluster:
+    Type: "AWS::DocDB::DBCluster"
+    DeletionPolicy: Delete
+    Properties:
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      MasterUsername: !Ref DocDbUsername
+      MasterUserPassword: !Ref DocDbPassword
+
+  DBInstance:
+    Type: AWS::DocDB::DBInstance
+    Properties:
+      AutoMinorVersionUpgrade: true
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceClass: "db.t3.medium"
+      PreferredMaintenanceWindow: "sun:00:00-sun:05:00"
+
+  # CacheSubnetGroup:
+  #   Type: "AWS::ElastiCache::SubnetGroup"
+  #   Properties:
+  #     Description: cache
+  #     SubnetIds:
+  #       - Ref: SubnetA
+  #       - Ref: SubnetB
+
+  # Cache:
+  #   Type: "AWS::ElastiCache::CacheCluster"
+  #   Properties:
+  #     CacheNodeType: "cache.t2.micro"
+  #     CacheSubnetGroupName: !Ref CacheSubnetGroup
+  #     Engine: redis
+  #     NumCacheNodes: 1
+
+Outputs:
+  CheckIpApi:
+    Description: "API Gateway endpoint URL for Prod stage for Check IP function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/check-ip/"
+  CheckIpFunction:
+    Description: "Check IP Lambda Function ARN"
+    Value: !GetAtt CheckIpFunction.Arn
+  CheckIpFunctionIamRole:
+    Description: "Implicit IAM Role created for Check IP function"
+    Value: !GetAtt CheckIpFunctionRole.Arn
+  DBCluster:
+    Description: The DB Cluster Name
+    Value: !Ref DBCluster
+  SettingsTable:
+    Description: DynamoDb Table for Settings
+    Value: !Ref SettingsTable
