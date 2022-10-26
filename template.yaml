@@ -61,6 +61,11 @@ Resources:
                   - ec2:DeleteNetworkInterface
                   - secretsmanager:*
                 Resource: "*"
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                Resource:
+                  - !Ref SettingsTable
 
   CheckIpFunction:
     Type: AWS::Serverless::Function
@@ -89,9 +94,6 @@ Resources:
       Layers:
         - !Ref CertificateLayer
       Role: !GetAtt CheckIpFunctionRole.Arn
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref SettingsTable
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
