@@ -126,13 +126,24 @@ Resources:
 
   ImageRepository:
     Type: AWS::ECR::Repository
-    Properties: 
+    Properties:
       RepositoryName: fsfd-repo
-      ImageScanningConfiguration: 
+      ImageScanningConfiguration:
         ScanOnPush: true
 
+  CacheSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: cache
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 6379
+          ToPort: 6379
+          CidrIp: 0.0.0.0/0
+
   CacheSubnetGroup:
-    Type: "AWS::ElastiCache::SubnetGroup"
+    Type: AWS::ElastiCache::SubnetGroup
     Properties:
       Description: cache
       SubnetIds:
@@ -140,12 +151,14 @@ Resources:
         - Ref: Subnet2
 
   Cache:
-    Type: "AWS::ElastiCache::CacheCluster"
+    Type: AWS::ElastiCache::CacheCluster
     Properties:
-      CacheNodeType: "cache.t2.micro"
+      CacheNodeType: cache.t2.micro
       CacheSubnetGroupName: !Ref CacheSubnetGroup
       Engine: redis
       NumCacheNodes: 1
+      VpcSecurityGroupIds:
+        - !Ref CacheSecurityGroup
 
 Outputs:
   CheckIpApi:
