@@ -65,7 +65,7 @@ Resources:
                 Action:
                   - dynamodb:GetItem
                 Resource:
-                  - !Ref SettingsTable
+                  - !GetAtt SettingsTable.Arn
 
   CheckIpFunction:
     Type: AWS::Serverless::Function
