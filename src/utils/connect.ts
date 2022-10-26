@@ -1,18 +1,27 @@
-import { MongoClient } from 'mongodb';
+import { Db, MongoClient } from 'mongodb';
+
+let cachedDb: Db;
 
 export const connect = async () => {
-    console.log(`mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_CLUSTER}:27017/?tls=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`);
+    if (cachedDb) {
+        return cachedDb;
+    }
+
+    console.log(
+        `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_CLUSTER}:27017`,
+    );
 
     console.log('Connecting via Mongo Client...');
     const client = await MongoClient.connect(
-        `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_CLUSTER}:27017/?tls=true&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false`,
+        `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_CLUSTER}:27017`,
         {
-            tlsCAFile: process.env.TLS_CA_FILE,
+            ssl: true,
+            sslCA: process.env.TLS_CA_FILE,
         },
     );
 
     console.log('Connecting to fsfd database...');
-    const db = client.db('fsfd');
+    cachedDb = client.db('fsfd');
 
-    return db;
+    return cachedDb;
 };
